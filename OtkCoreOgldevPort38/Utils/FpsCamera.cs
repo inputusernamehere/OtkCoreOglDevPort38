@@ -23,7 +23,7 @@ namespace OtkCoreOgldevPort38.Utils
 		public Vector3 CameraFront = Vector3.UnitZ * -1;
 		public Vector3 CameraUp = Vector3.UnitY;
 		public Vector3 CameraRight = Vector3.UnitX;
-		public float CameraSpeed = 0.0005f;
+		public float CameraSpeed = 0.05f;
 
 		public Matrix4 View { get => Matrix4.LookAt(CameraPosition, CameraPosition + CameraFront, CameraUp); }
 		public Matrix4 Projection { get => Matrix4.CreatePerspectiveFieldOfView(CameraFov, AspectRatio, 0.01f, 100f); }

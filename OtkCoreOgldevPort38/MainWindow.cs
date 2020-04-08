@@ -66,8 +66,8 @@ namespace OtkCoreOgldevPort38
 			var view = Camera.View;
 			var projection = Camera.Projection;
 
-			//var wvp = model * view * projection;
-			var wvp = projection * view * model;
+			var wvp = model * view * projection;
+			//var wvp = projection * view * model;
 
 			// test
 			var testwvp = new OpenToolkit.Mathematics.Matrix4(
@@ -75,10 +75,22 @@ namespace OtkCoreOgldevPort38
 				-8.7E-9f, 1.1E-9f, 0.1f, 0,
 				1.0E-16f, 0.1f, -1.1f, 0,
 				0, 0, 6, 1);
+			var testwvp2 = new OpenToolkit.Mathematics.Matrix4(
+				-0.1f, -8.7E-9f, 1.0E-16f, 0,
+				0, 1.1E-9f, 0.1f, 0,
+				-8.7E-9f, 0.1f, -1.1f, 6,
+				0, 0, 0, 1);
+			var testwvp3 = new OpenToolkit.Mathematics.Matrix4(
+				-0.12f, 0, -0.05f, -0.05f,
+				-0.06f, 0, 0.08f, 0.08f,
+				8.3E-10f, 0.17f, 0, 0,
+				-4.8f, -5.3f, 4, 6);
 
 			var wvpLocation = GL.GetUniformLocation(ShaderProgram, "gWVP");
 			//GL.UniformMatrix4(wvpLocation, false, ref wvp);
-			GL.UniformMatrix4(wvpLocation, false, ref testwvp);
+			//GL.UniformMatrix4(wvpLocation, false, ref testwvp);
+			//GL.UniformMatrix4(wvpLocation, false, ref testwvp2);
+			GL.UniformMatrix4(wvpLocation, false, ref testwvp3);
 
 			// Mesh transforms
 

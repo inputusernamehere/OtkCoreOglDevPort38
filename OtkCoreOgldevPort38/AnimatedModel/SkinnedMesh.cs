@@ -182,7 +182,7 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 			GL.VertexAttribPointer(NORMAL_LOCATION, 3, VertexAttribPointerType.Float, false, 0, 0);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, Buffers[(int)VB_TYPES.BONE_VB]);
-			GL.BufferData(BufferTarget.ArrayBuffer, boneSize, Bones.ToArray(), BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, boneSize * Bones.Count, Bones.ToArray(), BufferUsageHint.StaticDraw);
 			GL.EnableVertexAttribArray(BONE_ID_LOCATION);
 			GL.VertexAttribIPointer(BONE_ID_LOCATION, 4, VertexAttribIntegerType.Int, boneSize, IntPtr.Zero);
 			GL.EnableVertexAttribArray(BONE_WEIGHT_LOCATION);
@@ -261,7 +261,10 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 				{
 					int vertexId = Entries[meshIndex].BaseVertex + mesh.Bones[i].VertexWeights[j].VertexID;
 					float weight = mesh.Bones[i].VertexWeights[j].Weight;
-					bones[vertexId].AddBoneData(boneIndex, weight);
+
+					var bone = bones[vertexId];
+					VertexBoneData.AddBoneData(ref bone, boneIndex, weight);
+					bones[vertexId] = bone;
 				}
 			}
 		}

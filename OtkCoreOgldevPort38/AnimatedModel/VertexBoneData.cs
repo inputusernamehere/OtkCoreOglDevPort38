@@ -1,30 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace OtkCoreOgldevPort38.AnimatedModel
 {
-	public struct VertexBoneData
+	[StructLayout(LayoutKind.Explicit)]
+	public unsafe struct VertexBoneData
 	{
-		public const int NumBonesPerVertex = 4;
+		public static readonly int NumBonesPerVertex = 4;
 
-		public int[] Ids;
-		public float[] Weights;
+		[FieldOffset(0)]
+		public fixed int Ids[4];
+		[FieldOffset(sizeof(int) * 4)]
+		public fixed float Weights[4];
 
-		public void AddBoneData(int boneId, float weight)
+		public static void AddBoneData(ref VertexBoneData vbd, int boneId, float weight)
 		{
-			if (Ids == null)
-			{
-				Ids = new int[NumBonesPerVertex];
-				Weights = new float[NumBonesPerVertex];
-			}
-
 			for (int i = 0; i < NumBonesPerVertex; i++)
 			{
-				if (Weights[i] == 0.0f)
+				if (vbd.Weights[i] == 0.0f)
 				{
-					Ids[i] = boneId;
-					Weights[i] = weight;
+					vbd.Ids[i] = boneId;
+					vbd.Weights[i] = weight;
 
 					return;
 				}
