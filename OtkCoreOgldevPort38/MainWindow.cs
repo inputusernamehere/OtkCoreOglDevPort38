@@ -95,20 +95,32 @@ namespace OtkCoreOgldevPort38
 			// Mesh transforms
 
 			var transforms = new List<OpenToolkit.Mathematics.Matrix4>();
+			for (int i = 0; i < Mesh.NumBones; i++)
+			{
+				transforms.Add(new OpenToolkit.Mathematics.Matrix4());
+			}
+
+			var runningTime = 0f;
 
 			//Mesh.BoneTransforms((float)RunningTime, ref transforms);
+			Mesh.BoneTransforms((float)runningTime, ref transforms);
 
 			var identity = OpenToolkit.Mathematics.Matrix4.Identity;
 
 			// Max number of bones in shader
 			for (int i = 0; i < 100; i++)
 			{
-				// TODO: set bone transforms
-				var location = GL.GetUniformLocation(ShaderProgram, $"gBones[{i}]");
-				//var m = transforms[i];
-				//GL.UniformMatrix4(location, false, ref m);
+				var m = OpenToolkit.Mathematics.Matrix4.Identity;
 
-				GL.UniformMatrix4(location, false, ref identity);
+				if (i < transforms.Count)
+				{
+					m = transforms[i];
+				}
+
+				var location = GL.GetUniformLocation(ShaderProgram, $"gBones[{i}]");
+				GL.UniformMatrix4(location, false, ref m);
+
+				//GL.UniformMatrix4(location, false, ref identity);
 			}
 
 			Mesh.Render();

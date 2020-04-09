@@ -1,13 +1,10 @@
-﻿using Assimp;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using OpenToolkit.Mathematics;
 
 namespace OtkCoreOgldevPort38.AnimatedModel
 {
 	public struct BoneInfo
 	{
-		public Matrix4x4 BoneOffset;
-		public Matrix4x4 FinalTransformation;
+		public Matrix4 BoneOffset;
+		public Matrix4 FinalTransformation;
 	}
 }

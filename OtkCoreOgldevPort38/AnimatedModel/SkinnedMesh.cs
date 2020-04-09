@@ -31,7 +31,7 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 		Dictionary<string, int> BoneMapping = new Dictionary<string, int>();
 		List<BoneInfo> BoneInfo = new List<BoneInfo>();
-		Matrix4x4 GlobalInverseTransform;
+		Matrix4 GlobalInverseTransform;
 
 		Scene Scene;
 		AssimpContext Importer;
@@ -57,8 +57,8 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 			if (Scene != null)
 			{
-				GlobalInverseTransform = Scene.RootNode.Transform;
-				GlobalInverseTransform.Inverse();
+				GlobalInverseTransform = Scene.RootNode.Transform.ToOtk();
+				GlobalInverseTransform.Invert();
 
 				ret = InitFromScene(Scene, fileName);
 			}
@@ -97,19 +97,190 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 			GL.BindVertexArray(0);
 		}
 
-		internal void BoneTransforms(float timeInSeconds, ref List<Matrix4x4> transforms)
+		internal void BoneTransforms(float timeInSeconds, ref List<Matrix4> transforms)
 		{
 			float ticksPerSecond = Scene.Animations[0].TicksPerSecond != 0 ?
 				(float)Scene.Animations[0].TicksPerSecond : 25f;
 			float timeInTicks = timeInSeconds * ticksPerSecond;
 			float animationTime = timeInTicks % (float)Scene.Animations[0].DurationInTicks;
+
+			ReadNodeHierarchy(animationTime, Scene.RootNode, Matrix4.Identity);
+
+			for (int i = 0; i < NumBones; i++)
+			{
+				transforms[i] = BoneInfo[i].FinalTransformation;
+			}
 		}
 
-		void BoneTransform(float timeInSeconds, List<Matrix4> Transforms)
+		private void ReadNodeHierarchy(float animationTime, Node pNode, Matrix4 parentTransform)
 		{
 
+			var nodeName = pNode.Name;
+
+			var pAnimation = Scene.Animations[0];
+
+			var nodeTransformation = pNode.Transform.ToOtk();
+
+			var pNodeAnim = FindNodeAnim(pAnimation, nodeName);
+
+			if (pNodeAnim != null)
+			{
+				var scaling = CalcInterpolatedScaling(animationTime, pNodeAnim);
+				var scalingM = Matrix4.CreateScale(scaling);
+
+				var rotation = CalcInterpolatedRotation(animationTime, pNodeAnim);
+				var rotationM = Matrix4.CreateFromQuaternion(rotation);
+
+				var translation = CalcInterpolatedPosition(animationTime, pNodeAnim);
+				var translationM = Matrix4.CreateTranslation(translation);
+
+				nodeTransformation = translationM * rotationM * scalingM;
+			}
+
+			var globalTransformation = parentTransform * nodeTransformation;
+
+			if (BoneMapping.ContainsKey(nodeName))
+			{
+				var boneIndex = BoneMapping[nodeName];
+
+				var bi = BoneInfo[boneIndex];
+				bi.FinalTransformation = GlobalInverseTransform * globalTransformation * bi.BoneOffset;
+				BoneInfo[boneIndex] = bi;
+			}
+
+			for (int i = 0; i < pNode.ChildCount; i++)
+			{
+				ReadNodeHierarchy(animationTime, pNode.Children[i], globalTransformation);
+			}
 		}
 
+		private Vector3 CalcInterpolatedScaling(float animationTime, NodeAnimationChannel pNodeAnim)
+		{
+			// TODO add asserts
+
+			if (pNodeAnim.ScalingKeyCount == 1)
+			{
+				return pNodeAnim.ScalingKeys[0].Value.ToOtk();
+			}
+
+			var scalingIndex = FindScaling(animationTime, pNodeAnim);
+			var nextScalingIndex = (scalingIndex + 1);
+
+			var deltaTime = pNodeAnim.ScalingKeys[nextScalingIndex].Time - pNodeAnim.ScalingKeys[scalingIndex].Time;
+			var factor = (animationTime - pNodeAnim.ScalingKeys[scalingIndex].Time) / deltaTime;
+
+			var start = pNodeAnim.ScalingKeys[scalingIndex].Value;
+			var end = pNodeAnim.ScalingKeys[nextScalingIndex].Value;
+			var delta = end - start;
+
+			return (start + ((float)factor * delta)).ToOtk();
+		}
+
+		private int FindScaling(float animationTime, NodeAnimationChannel pNodeAnim)
+		{
+			// TODO add asserts
+
+			for (int i = 0; i < pNodeAnim.ScalingKeyCount - 1; i++)
+			{
+				if (animationTime < pNodeAnim.ScalingKeys[i + 1].Time)
+				{
+					return i;
+				}
+			}
+
+			return 0;
+		}
+
+		private OpenToolkit.Mathematics.Quaternion CalcInterpolatedRotation(float animationTime, NodeAnimationChannel pNodeAnim)
+		{
+			// TODO add asserts
+
+			if (pNodeAnim.RotationKeyCount == 1)
+			{
+				return pNodeAnim.RotationKeys[0].Value.ToOtk();
+			}
+
+			var rotationIndex = FindRotation(animationTime, pNodeAnim);
+			var nextRotationIndex = rotationIndex + 1;
+
+			var deltaTime = pNodeAnim.RotationKeys[nextRotationIndex].Time - pNodeAnim.RotationKeys[rotationIndex].Time;
+			var factor = (animationTime - pNodeAnim.RotationKeys[rotationIndex].Time) / deltaTime;
+
+			var startRotationQ = pNodeAnim.RotationKeys[rotationIndex].Value;
+			var endRotationQ = pNodeAnim.RotationKeys[nextRotationIndex].Value;
+
+			var interpolated = Assimp.Quaternion.Slerp(startRotationQ, endRotationQ, (float)factor);
+			interpolated.Normalize();
+
+			return interpolated.ToOtk();
+		}
+
+		private int FindRotation(float animationTime, NodeAnimationChannel pNodeAnim)
+		{
+			// TODO add asserts
+
+			for (int i = 0; i < pNodeAnim.RotationKeyCount - 1; i++)
+			{
+				if (animationTime < pNodeAnim.RotationKeys[i + 1].Time)
+				{
+					return i;
+				}
+			}
+
+			return 0;
+		}
+
+		private Vector3 CalcInterpolatedPosition(float animationTime, NodeAnimationChannel pNodeAnim)
+		{
+			// TODO add asserts
+
+			if (pNodeAnim.PositionKeyCount == 1)
+			{
+				return pNodeAnim.PositionKeys[0].Value.ToOtk();
+			}
+
+			var positionIndex = FindPosition(animationTime, pNodeAnim);
+			var nextPositionIndex = (positionIndex + 1);
+
+			var deltaTime = pNodeAnim.PositionKeys[nextPositionIndex].Time - pNodeAnim.PositionKeys[positionIndex].Time;
+			var factor = (animationTime - pNodeAnim.PositionKeys[positionIndex].Time) / deltaTime;
+
+			var start = pNodeAnim.PositionKeys[positionIndex].Value;
+			var end = pNodeAnim.PositionKeys[nextPositionIndex].Value;
+			var delta = end - start;
+
+			return (start + ((float)factor * delta)).ToOtk();
+		}
+
+		private int FindPosition(float animationTime, NodeAnimationChannel pNodeAnim)
+		{
+			// todo add asserts
+
+			for (int i = 0; i < pNodeAnim.PositionKeyCount - 1; i++)
+			{
+				if (animationTime < pNodeAnim.PositionKeys[i + 1].Time)
+				{
+					return i;
+				}
+			}
+
+			return 0;
+		}
+
+		private NodeAnimationChannel FindNodeAnim(Animation pAnimation, string nodeName)
+		{
+			for (int i = 0; i < pAnimation.NodeAnimationChannelCount; i++)
+			{
+				var pNodeAnim = pAnimation.NodeAnimationChannels[i];
+
+				if (pNodeAnim.NodeName == nodeName)
+				{
+					return pNodeAnim;
+				}
+			}
+
+			return null;
+		}
 
 		private bool InitFromScene(Scene scene, string fileName)
 		{
@@ -246,9 +417,8 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 					BoneInfo bi = new BoneInfo();
 
 					BoneInfo.Add(bi);
-					//BoneInfo[boneIndex].BoneOffset = mesh.Bones[i].OffsetMatrix;
 					var biToChange = BoneInfo[boneIndex];
-					biToChange.BoneOffset = mesh.Bones[i].OffsetMatrix;
+					biToChange.BoneOffset = mesh.Bones[i].OffsetMatrix.ToOtk();
 					BoneInfo[boneIndex] = biToChange;
 					BoneMapping[boneName] = boneIndex;
 				}
