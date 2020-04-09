@@ -378,14 +378,14 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 		{
 			for (int i = 0; i < paiMesh.VertexCount; i++)
 			{
-				var position = paiMesh.Vertices[i];
-				var normal = paiMesh.Normals[i];
+				var position = paiMesh.Vertices[i].ToOtk();
+				var normal = paiMesh.Normals[i].ToOtk();
 				var texCoord = paiMesh.HasTextureCoords(0) ?
 					paiMesh.TextureCoordinateChannels[0][i] :
 					new Vector3D();
 
-				positions.Add(new Vector3(position.X, position.Y, position.Z));
-				normals.Add(new Vector3(normal.X, normal.Y, normal.Z));
+				positions.Add(position);
+				normals.Add(normal);
 				texCoords.Add(new Vector2(texCoord.X, texCoord.Y));
 			}
 
