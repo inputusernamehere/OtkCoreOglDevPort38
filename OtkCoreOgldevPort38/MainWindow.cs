@@ -47,6 +47,8 @@ namespace OtkCoreOgldevPort38
 		{
 			//Console.WriteLine(args.Time);
 
+			RunningTime += args.Time;
+
 			Camera.MoveByKeyboard(KeyboardState, (float)args.Time);
 			Camera.MoveByMouse(MouseState);
 
@@ -104,7 +106,7 @@ namespace OtkCoreOgldevPort38
 
 			var runningTime = 0f;
 
-			Mesh.BoneTransforms((float)RunningTime, ref transforms);
+			Mesh.BoneTransforms((float)RunningTime / 1000f, ref transforms);
 			//Mesh.BoneTransforms((float)runningTime, ref transforms);
 
 			var identity = OpenToolkit.Mathematics.Matrix4.Identity;
