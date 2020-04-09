@@ -10,4 +10,4 @@ You can ignore everything in the Utils namespace, except for the ToOtk() functio
 
 When you run the program you should see an animated model. You can also move around the scen with WASD, space and shift.
 
-https://i.imgur.com/XYZ49eJ.gifv
+![](https://i.imgur.com/XYZ49eJ.gifv)
