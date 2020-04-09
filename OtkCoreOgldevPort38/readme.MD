@@ -1,4 +1,4 @@
-# OpenToolkit (4.0) port of Ogldev's 38th tutorial on Skeletal Animations
+# OpenToolkit (4.0) port of Ogldev's tutorial 38 on Skeletal Animations
 
 You can find the original tutorial and code here: http://www.ogldev.org/www/tutorial38/tutorial38.html
 
