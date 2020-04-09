@@ -15,6 +15,8 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 		NORMAL_VB,
 		TEXCOORD_VB,
 		BONE_VB,
+
+		// The number of entries in this enum.
 		NUM_VBs
 	}
 
@@ -35,7 +37,6 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 		Scene Scene;
 		AssimpContext Importer;
-
 
 		const PostProcessSteps ASSIMP_LOAD_FLAGS = PostProcessSteps.Triangulate | PostProcessSteps.GenerateSmoothNormals | PostProcessSteps.FlipUVs | PostProcessSteps.JoinIdenticalVertices;
 
@@ -145,7 +146,6 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 				var boneIndex = BoneMapping[nodeName];
 
 				var bi = BoneInfo[boneIndex];
-				bi.FinalTransformation = GlobalInverseTransform * globalTransformation * bi.BoneOffset;
 				// Note the reverse multiplication order
 				bi.FinalTransformation = bi.BoneOffset * globalTransformation * GlobalInverseTransform;
 				BoneInfo[boneIndex] = bi;
@@ -257,7 +257,7 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 		private int FindPosition(float animationTime, NodeAnimationChannel pNodeAnim)
 		{
-			// todo add asserts
+			// TODO add asserts
 
 			for (int i = 0; i < pNodeAnim.PositionKeyCount - 1; i++)
 			{
@@ -287,14 +287,14 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 		private bool InitFromScene(Scene scene, string fileName)
 		{
-			List<Vector3> Positions = new List<Vector3>();
-			List<Vector3> Normals = new List<Vector3>();
-			List<Vector2> TexCoords = new List<Vector2>();
-			List<VertexBoneData> Bones = new List<VertexBoneData>();
-			List<int> Indices = new List<int>();
+			List<Vector3> positions = new List<Vector3>();
+			List<Vector3> normals = new List<Vector3>();
+			List<Vector2> texCoords = new List<Vector2>();
+			List<VertexBoneData> bones = new List<VertexBoneData>();
+			List<int> indices = new List<int>();
 
-			int NumVertices = 0;
-			int NumIndices = 0;
+			int numVertices = 0;
+			int numIndices = 0;
 
 			for (int i = 0; i < Scene.MeshCount; i++)
 			{
@@ -302,26 +302,26 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 				{
 					MaterialIndex = Scene.Meshes[i].MaterialIndex,
 					NumIndices = Scene.Meshes[i].FaceCount * 3,
-					BaseVertex = NumVertices,
-					BaseIndex = NumIndices,
+					BaseVertex = numVertices,
+					BaseIndex = numIndices,
 				};
 
 				Entries.Add(entry);
 
-				NumVertices += Scene.Meshes[i].VertexCount;
-				NumIndices += entry.NumIndices;
+				numVertices += Scene.Meshes[i].VertexCount;
+				numIndices += entry.NumIndices;
 			}
 
 			// these are referred to by ID later, so init them here
-			for (int i = 0; i < NumVertices; i++)
+			for (int i = 0; i < numVertices; i++)
 			{
-				Bones.Add(new VertexBoneData());
+				bones.Add(new VertexBoneData());
 			}
 
 			for (int i = 0; i < Entries.Count; i++)
 			{
 				Mesh paiMesh = Scene.Meshes[i];
-				InitMesh(i, paiMesh, ref Positions, ref Normals, ref TexCoords, ref Bones, ref Indices);
+				InitMesh(i, paiMesh, ref positions, ref normals, ref texCoords, ref bones, ref indices);
 			}
 
 			if (!InitMaterials(Scene, fileName))
@@ -341,29 +341,29 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 			const int BONE_WEIGHT_LOCATION = 4;
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, Buffers[(int)VB_TYPES.POS_VB]);
-			GL.BufferData(BufferTarget.ArrayBuffer, v3size * Positions.Count, Positions.ToArray(), BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, v3size * positions.Count, positions.ToArray(), BufferUsageHint.StaticDraw);
 			GL.EnableVertexAttribArray(POSITION_LOCATION);
 			GL.VertexAttribPointer(POSITION_LOCATION, 3, VertexAttribPointerType.Float, false, 0, 0);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, Buffers[(int)VB_TYPES.TEXCOORD_VB]);
-			GL.BufferData(BufferTarget.ArrayBuffer, v2size * TexCoords.Count, TexCoords.ToArray(), BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, v2size * texCoords.Count, texCoords.ToArray(), BufferUsageHint.StaticDraw);
 			GL.EnableVertexAttribArray(TEX_COORD_LOCATION);
 			GL.VertexAttribPointer(TEX_COORD_LOCATION, 2, VertexAttribPointerType.Float, false, 0, 0);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, Buffers[(int)VB_TYPES.NORMAL_VB]);
-			GL.BufferData(BufferTarget.ArrayBuffer, v3size * Normals.Count, Normals.ToArray(), BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, v3size * normals.Count, normals.ToArray(), BufferUsageHint.StaticDraw);
 			GL.EnableVertexAttribArray(NORMAL_LOCATION);
 			GL.VertexAttribPointer(NORMAL_LOCATION, 3, VertexAttribPointerType.Float, false, 0, 0);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, Buffers[(int)VB_TYPES.BONE_VB]);
-			GL.BufferData(BufferTarget.ArrayBuffer, boneSize * Bones.Count, Bones.ToArray(), BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, boneSize * bones.Count, bones.ToArray(), BufferUsageHint.StaticDraw);
 			GL.EnableVertexAttribArray(BONE_ID_LOCATION);
 			GL.VertexAttribIPointer(BONE_ID_LOCATION, 4, VertexAttribIntegerType.Int, boneSize, IntPtr.Zero);
 			GL.EnableVertexAttribArray(BONE_WEIGHT_LOCATION);
 			GL.VertexAttribPointer(BONE_WEIGHT_LOCATION, 4, VertexAttribPointerType.Float, false, boneSize, new IntPtr(16));
 
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, Buffers[(int)VB_TYPES.INDEX_BUFFER]);
-			GL.BufferData(BufferTarget.ElementArrayBuffer, iSize * Indices.Count, Indices.ToArray(), BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ElementArrayBuffer, iSize * indices.Count, indices.ToArray(), BufferUsageHint.StaticDraw);
 
 			return Util.GLCheckError();
 		}
@@ -442,6 +442,7 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 			}
 		}
 
+		// Ignore this method as we won't be loading materials
 		bool InitMaterials(Scene scene, string fileName)
 		{
 			var slashIndex = fileName.LastIndexOf("/");

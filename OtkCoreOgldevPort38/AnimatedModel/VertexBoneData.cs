@@ -5,6 +5,8 @@ using System.Text;
 
 namespace OtkCoreOgldevPort38.AnimatedModel
 {
+	// I had to use fixed-size buffers to make the code (almost) identical to the C++ version.
+
 	[StructLayout(LayoutKind.Explicit)]
 	public unsafe struct VertexBoneData
 	{

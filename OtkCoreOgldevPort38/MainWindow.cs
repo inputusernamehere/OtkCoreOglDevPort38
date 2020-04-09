@@ -24,7 +24,11 @@ namespace OtkCoreOgldevPort38
 			: base(gameWindowSettings, nativeWindowSettings)
 		{
 			Camera = new FpsCamera(Size.X, Size.Y);
-			Camera.CameraPosition = new OpenToolkit.Mathematics.Vector3(-3.0f, -2.0f, -2.0f);
+
+			Camera.CameraPosition = new OpenToolkit.Mathematics.Vector3(0, -80, 40);
+			Camera.CameraYaw = -90;
+			Camera.CameraPitch = 90;
+			Camera.RecalculateCamera(0, 0);
 		}
 
 
@@ -45,8 +49,6 @@ namespace OtkCoreOgldevPort38
 
 		protected override void OnUpdateFrame(FrameEventArgs args)
 		{
-			//Console.WriteLine(args.Time);
-
 			RunningTime += args.Time;
 
 			Camera.MoveByKeyboard(KeyboardState, (float)args.Time);
@@ -64,37 +66,16 @@ namespace OtkCoreOgldevPort38
 
 			GL.UseProgram(ShaderProgram);
 
-			// Camera MVP ---
+			// Camera MVP
 
 			var model = OpenToolkit.Mathematics.Matrix4.Identity;
 			var view = Camera.View;
 			var projection = Camera.Projection;
 
 			var wvp = model * view * projection;
-			//var wvp = projection * view * model;
-
-			// test
-			var testwvp = new OpenToolkit.Mathematics.Matrix4(
-				-0.1f, 0, -8.7E-9f, 0,
-				-8.7E-9f, 1.1E-9f, 0.1f, 0,
-				1.0E-16f, 0.1f, -1.1f, 0,
-				0, 0, 6, 1);
-			var testwvp2 = new OpenToolkit.Mathematics.Matrix4(
-				-0.1f, -8.7E-9f, 1.0E-16f, 0,
-				0, 1.1E-9f, 0.1f, 0,
-				-8.7E-9f, 0.1f, -1.1f, 6,
-				0, 0, 0, 1);
-			var testwvp3 = new OpenToolkit.Mathematics.Matrix4(
-				-0.12f, 0, -0.05f, -0.05f,
-				-0.06f, 0, 0.08f, 0.08f,
-				8.3E-10f, 0.17f, 0, 0,
-				-4.8f, -5.3f, 4, 6);
 
 			var wvpLocation = GL.GetUniformLocation(ShaderProgram, "gWVP");
 			GL.UniformMatrix4(wvpLocation, false, ref wvp);
-			//GL.UniformMatrix4(wvpLocation, false, ref testwvp);
-			//GL.UniformMatrix4(wvpLocation, false, ref testwvp2);
-			//GL.UniformMatrix4(wvpLocation, false, ref testwvp3);
 
 			// Mesh transforms
 
@@ -104,27 +85,13 @@ namespace OtkCoreOgldevPort38
 				transforms.Add(new OpenToolkit.Mathematics.Matrix4());
 			}
 
-			var runningTime = 0f;
-
 			Mesh.BoneTransforms((float)RunningTime / 1000f, ref transforms);
-			//Mesh.BoneTransforms((float)runningTime, ref transforms);
 
-			var identity = OpenToolkit.Mathematics.Matrix4.Identity;
-
-			// Max number of bones in shader
-			for (int i = 0; i < 100; i++)
+			for (int i = 0; i < transforms.Count; i++)
 			{
-				var m = OpenToolkit.Mathematics.Matrix4.Identity;
-
-				if (i < transforms.Count)
-				{
-					m = transforms[i];
-				}
-
+				var m = transforms[i];
 				var location = GL.GetUniformLocation(ShaderProgram, $"gBones[{i}]");
 				GL.UniformMatrix4(location, false, ref m);
-
-				//GL.UniformMatrix4(location, false, ref identity);
 			}
 
 			Mesh.Render();

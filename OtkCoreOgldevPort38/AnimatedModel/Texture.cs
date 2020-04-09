@@ -19,7 +19,7 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 		bool Load()
 		{
-			//TODO: this
+			// I won't bother loading textures in this example.
 			return true;
 		}
 

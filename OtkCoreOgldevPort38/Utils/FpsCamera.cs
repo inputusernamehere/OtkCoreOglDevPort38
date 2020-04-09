@@ -32,6 +32,8 @@ namespace OtkCoreOgldevPort38.Utils
 		{
 			Width = width;
 			Height = height;
+
+			RecalculateCamera(0, 0);
 		}
 
 		public void MoveByMouse(MouseState mouse)
@@ -45,6 +47,11 @@ namespace OtkCoreOgldevPort38.Utils
 				return;
 			}
 
+			RecalculateCamera(deltaX, deltaY);
+		}
+
+		public void RecalculateCamera(float deltaX, float deltaY)
+		{
 			CameraYaw += deltaX * MouseSensitivity;
 			CameraPitch -= deltaY * MouseSensitivity;
 			CameraPitch = MathHelper.Clamp(CameraPitch, -89f, 89f);
