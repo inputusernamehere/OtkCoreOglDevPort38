@@ -8,6 +8,6 @@ The purpose of this project is to be a reference implementation you can use whil
 
 You can ignore everything in the Utils namespace, except for the ToOtk() functions in Util.cs. In particular the method for converting matrixes may be different from how you would expect! FpsCamera, MathUtils and ShaderUtils were not ported from Ogldev's tutorial, they are there for convenice's sake, so that I wouldn't have to port his entire project.
 
-When you run the program you should see an animated model. You can also move around the scen with WASD, space and shift.
+When you run the program you should see an animated model. You can also move around the scene with WASD, space and shift.
 
 ![](https://i.imgur.com/XYZ49eJ.gif)
