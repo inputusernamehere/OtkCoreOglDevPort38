@@ -114,7 +114,6 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 		private void ReadNodeHierarchy(float animationTime, Node pNode, Matrix4 parentTransform)
 		{
-
 			var nodeName = pNode.Name;
 
 			var pAnimation = Scene.Animations[0];
@@ -134,10 +133,12 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 				var translation = CalcInterpolatedPosition(animationTime, pNodeAnim);
 				var translationM = Matrix4.CreateTranslation(translation);
 
-				nodeTransformation = translationM * rotationM * scalingM;
+				// Note the reverse multiplication order
+				nodeTransformation = scalingM * rotationM * translationM;
 			}
 
-			var globalTransformation = parentTransform * nodeTransformation;
+			// Note the reverse multiplication order
+			var globalTransformation = nodeTransformation * parentTransform;
 
 			if (BoneMapping.ContainsKey(nodeName))
 			{
@@ -145,6 +146,8 @@ namespace OtkCoreOgldevPort38.AnimatedModel
 
 				var bi = BoneInfo[boneIndex];
 				bi.FinalTransformation = GlobalInverseTransform * globalTransformation * bi.BoneOffset;
+				// Note the reverse multiplication order
+				bi.FinalTransformation = bi.BoneOffset * globalTransformation * GlobalInverseTransform;
 				BoneInfo[boneIndex] = bi;
 			}
 

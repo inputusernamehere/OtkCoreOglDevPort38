@@ -45,6 +45,8 @@ namespace OtkCoreOgldevPort38
 
 		protected override void OnUpdateFrame(FrameEventArgs args)
 		{
+			//Console.WriteLine(args.Time);
+
 			Camera.MoveByKeyboard(KeyboardState, (float)args.Time);
 			Camera.MoveByMouse(MouseState);
 
@@ -87,10 +89,10 @@ namespace OtkCoreOgldevPort38
 				-4.8f, -5.3f, 4, 6);
 
 			var wvpLocation = GL.GetUniformLocation(ShaderProgram, "gWVP");
-			//GL.UniformMatrix4(wvpLocation, false, ref wvp);
+			GL.UniformMatrix4(wvpLocation, false, ref wvp);
 			//GL.UniformMatrix4(wvpLocation, false, ref testwvp);
 			//GL.UniformMatrix4(wvpLocation, false, ref testwvp2);
-			GL.UniformMatrix4(wvpLocation, false, ref testwvp3);
+			//GL.UniformMatrix4(wvpLocation, false, ref testwvp3);
 
 			// Mesh transforms
 
@@ -102,8 +104,8 @@ namespace OtkCoreOgldevPort38
 
 			var runningTime = 0f;
 
-			//Mesh.BoneTransforms((float)RunningTime, ref transforms);
-			Mesh.BoneTransforms((float)runningTime, ref transforms);
+			Mesh.BoneTransforms((float)RunningTime, ref transforms);
+			//Mesh.BoneTransforms((float)runningTime, ref transforms);
 
 			var identity = OpenToolkit.Mathematics.Matrix4.Identity;
 
